@@ -1,5 +1,5 @@
 if USE_SYSTEM_SHARED_LIB
-SUBDIRS = libcork libipset src
+SUBDIRS = libcork libipset libudns libev src
 else
 SUBDIRS = libsodium libcork libipset libudns libev src
 endif
