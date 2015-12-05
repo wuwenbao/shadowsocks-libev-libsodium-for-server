@@ -168,10 +168,14 @@ ss_local_DEPENDENCIES = $(am__DEPENDENCIES_2) $(am__DEPENDENCIES_1) \
 ss_local_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(ss_local_CFLAGS) \
 	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am_ss_manager_OBJECTS = utils.$(OBJEXT) jconf.$(OBJEXT) json.$(OBJEXT) \
-	manager.$(OBJEXT)
+am_ss_manager_OBJECTS = ss_manager-utils.$(OBJEXT) \
+	ss_manager-jconf.$(OBJEXT) ss_manager-json.$(OBJEXT) \
+	ss_manager-manager.$(OBJEXT)
 ss_manager_OBJECTS = $(am_ss_manager_OBJECTS)
 ss_manager_DEPENDENCIES = $(am__DEPENDENCIES_2)
+ss_manager_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(ss_manager_CFLAGS) \
+	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__ss_redir_SOURCES_DIST = utils.c jconf.c json.c encrypt.c \
 	netutils.c cache.c udprelay.c hmac-sha1.c redir.c
 @BUILD_REDIRECTOR_TRUE@am_ss_redir_OBJECTS = ss_redir-utils.$(OBJEXT) \
@@ -413,9 +417,10 @@ ss_local_LDADD = $(SS_COMMON_LIBS) $(am__append_5) $(am__append_8)
 ss_tunnel_LDADD = $(SS_COMMON_LIBS) $(am__append_6) $(am__append_9)
 ss_server_LDADD = $(SS_COMMON_LIBS) $(am__append_7) $(am__append_10)
 ss_manager_LDADD = $(SS_COMMON_LIBS)
-ss_local_CFLAGS = $(AM_CFLAGS) -DUDPRELAY_LOCAL
-ss_tunnel_CFLAGS = $(AM_CFLAGS) -DUDPRELAY_LOCAL -DUDPRELAY_TUNNEL
-ss_server_CFLAGS = $(AM_CFLAGS) -DUDPRELAY_REMOTE
+ss_local_CFLAGS = $(AM_CFLAGS) -DMODULE_LOCAL
+ss_tunnel_CFLAGS = $(AM_CFLAGS) -DMODULE_TUNNEL
+ss_server_CFLAGS = $(AM_CFLAGS) -DMODULE_REMOTE
+ss_manager_CFLAGS = $(AM_CFLAGS) -DMODULE_MANAGER
 @BUILD_REDIRECTOR_TRUE@ss_redir_SOURCES = utils.c \
 @BUILD_REDIRECTOR_TRUE@                   jconf.c \
 @BUILD_REDIRECTOR_TRUE@                   json.c \
@@ -426,7 +431,7 @@ ss_server_CFLAGS = $(AM_CFLAGS) -DUDPRELAY_REMOTE
 @BUILD_REDIRECTOR_TRUE@				   hmac-sha1.c \
 @BUILD_REDIRECTOR_TRUE@                   redir.c
 
-@BUILD_REDIRECTOR_TRUE@ss_redir_CFLAGS = $(AM_CFLAGS) -DUDPRELAY_REDIR -DUDPRELAY_LOCAL
+@BUILD_REDIRECTOR_TRUE@ss_redir_CFLAGS = $(AM_CFLAGS) -DMODULE_REDIR
 @BUILD_REDIRECTOR_TRUE@ss_redir_LDADD = $(SS_COMMON_LIBS) \
 @BUILD_REDIRECTOR_TRUE@	$(am__append_14) $(am__append_15)
 lib_LTLIBRARIES = libshadowsocks.la
@@ -554,7 +559,7 @@ ss-local$(EXEEXT): $(ss_local_OBJECTS) $(ss_local_DEPENDENCIES) $(EXTRA_ss_local
 	$(AM_V_CCLD)$(ss_local_LINK) $(ss_local_OBJECTS) $(ss_local_LDADD) $(LIBS)
 ss-manager$(EXEEXT): $(ss_manager_OBJECTS) $(ss_manager_DEPENDENCIES) $(EXTRA_ss_manager_DEPENDENCIES) 
 	@rm -f ss-manager$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(ss_manager_OBJECTS) $(ss_manager_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(ss_manager_LINK) $(ss_manager_OBJECTS) $(ss_manager_LDADD) $(LIBS)
 ss-redir$(EXEEXT): $(ss_redir_OBJECTS) $(ss_redir_DEPENDENCIES) $(EXTRA_ss_redir_DEPENDENCIES) 
 	@rm -f ss-redir$(EXEEXT)
 	$(AM_V_CCLD)$(ss_redir_LINK) $(ss_redir_OBJECTS) $(ss_redir_LDADD) $(LIBS)
@@ -571,8 +576,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jconf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/json.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libshadowsocks_la-acl.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libshadowsocks_la-cache.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libshadowsocks_la-encrypt.Plo@am__quote@
@@ -584,7 +587,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libshadowsocks_la-udprelay.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libshadowsocks_la-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libshadowsocks_la-win32.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/manager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_local-acl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_local-cache.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_local-encrypt.Po@am__quote@
@@ -596,6 +598,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_local-udprelay.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_local-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_local-win32.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_manager-jconf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_manager-json.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_manager-manager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_manager-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_redir-cache.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_redir-encrypt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_redir-hmac-sha1.Po@am__quote@
@@ -626,7 +632,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_tunnel-udprelay.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_tunnel-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ss_tunnel-win32.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/utils.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -882,6 +887,62 @@ ss_local-win32.obj: win32.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='win32.c' object='ss_local-win32.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_local_CFLAGS) $(CFLAGS) -c -o ss_local-win32.obj `if test -f 'win32.c'; then $(CYGPATH_W) 'win32.c'; else $(CYGPATH_W) '$(srcdir)/win32.c'; fi`
+
+ss_manager-utils.o: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -MT ss_manager-utils.o -MD -MP -MF $(DEPDIR)/ss_manager-utils.Tpo -c -o ss_manager-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ss_manager-utils.Tpo $(DEPDIR)/ss_manager-utils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='utils.c' object='ss_manager-utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -c -o ss_manager-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
+
+ss_manager-utils.obj: utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -MT ss_manager-utils.obj -MD -MP -MF $(DEPDIR)/ss_manager-utils.Tpo -c -o ss_manager-utils.obj `if test -f 'utils.c'; then $(CYGPATH_W) 'utils.c'; else $(CYGPATH_W) '$(srcdir)/utils.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ss_manager-utils.Tpo $(DEPDIR)/ss_manager-utils.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='utils.c' object='ss_manager-utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -c -o ss_manager-utils.obj `if test -f 'utils.c'; then $(CYGPATH_W) 'utils.c'; else $(CYGPATH_W) '$(srcdir)/utils.c'; fi`
+
+ss_manager-jconf.o: jconf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -MT ss_manager-jconf.o -MD -MP -MF $(DEPDIR)/ss_manager-jconf.Tpo -c -o ss_manager-jconf.o `test -f 'jconf.c' || echo '$(srcdir)/'`jconf.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ss_manager-jconf.Tpo $(DEPDIR)/ss_manager-jconf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jconf.c' object='ss_manager-jconf.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -c -o ss_manager-jconf.o `test -f 'jconf.c' || echo '$(srcdir)/'`jconf.c
+
+ss_manager-jconf.obj: jconf.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -MT ss_manager-jconf.obj -MD -MP -MF $(DEPDIR)/ss_manager-jconf.Tpo -c -o ss_manager-jconf.obj `if test -f 'jconf.c'; then $(CYGPATH_W) 'jconf.c'; else $(CYGPATH_W) '$(srcdir)/jconf.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ss_manager-jconf.Tpo $(DEPDIR)/ss_manager-jconf.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='jconf.c' object='ss_manager-jconf.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -c -o ss_manager-jconf.obj `if test -f 'jconf.c'; then $(CYGPATH_W) 'jconf.c'; else $(CYGPATH_W) '$(srcdir)/jconf.c'; fi`
+
+ss_manager-json.o: json.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -MT ss_manager-json.o -MD -MP -MF $(DEPDIR)/ss_manager-json.Tpo -c -o ss_manager-json.o `test -f 'json.c' || echo '$(srcdir)/'`json.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ss_manager-json.Tpo $(DEPDIR)/ss_manager-json.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='json.c' object='ss_manager-json.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -c -o ss_manager-json.o `test -f 'json.c' || echo '$(srcdir)/'`json.c
+
+ss_manager-json.obj: json.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -MT ss_manager-json.obj -MD -MP -MF $(DEPDIR)/ss_manager-json.Tpo -c -o ss_manager-json.obj `if test -f 'json.c'; then $(CYGPATH_W) 'json.c'; else $(CYGPATH_W) '$(srcdir)/json.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ss_manager-json.Tpo $(DEPDIR)/ss_manager-json.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='json.c' object='ss_manager-json.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -c -o ss_manager-json.obj `if test -f 'json.c'; then $(CYGPATH_W) 'json.c'; else $(CYGPATH_W) '$(srcdir)/json.c'; fi`
+
+ss_manager-manager.o: manager.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -MT ss_manager-manager.o -MD -MP -MF $(DEPDIR)/ss_manager-manager.Tpo -c -o ss_manager-manager.o `test -f 'manager.c' || echo '$(srcdir)/'`manager.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ss_manager-manager.Tpo $(DEPDIR)/ss_manager-manager.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='manager.c' object='ss_manager-manager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -c -o ss_manager-manager.o `test -f 'manager.c' || echo '$(srcdir)/'`manager.c
+
+ss_manager-manager.obj: manager.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -MT ss_manager-manager.obj -MD -MP -MF $(DEPDIR)/ss_manager-manager.Tpo -c -o ss_manager-manager.obj `if test -f 'manager.c'; then $(CYGPATH_W) 'manager.c'; else $(CYGPATH_W) '$(srcdir)/manager.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/ss_manager-manager.Tpo $(DEPDIR)/ss_manager-manager.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='manager.c' object='ss_manager-manager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_manager_CFLAGS) $(CFLAGS) -c -o ss_manager-manager.obj `if test -f 'manager.c'; then $(CYGPATH_W) 'manager.c'; else $(CYGPATH_W) '$(srcdir)/manager.c'; fi`
 
 ss_redir-utils.o: utils.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ss_redir_CFLAGS) $(CFLAGS) -MT ss_redir-utils.o -MD -MP -MF $(DEPDIR)/ss_redir-utils.Tpo -c -o ss_redir-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
