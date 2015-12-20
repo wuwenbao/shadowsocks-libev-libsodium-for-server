@@ -2,7 +2,7 @@ dnl                                               -*- Autoconf -*-
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([shadowsocks-libev], [2.4.2], [max.c.lv@gmail.com])
+AC_INIT([shadowsocks-libev], [2.4.3], [max.c.lv@gmail.com])
 AC_CONFIG_SRCDIR([src/encrypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR(auto)
@@ -253,7 +253,7 @@ if test "$ac_cv_func_select" != "yes"; then
       AC_MSG_RESULT([yes])
       HAVE_SELECT="1"
       AC_DEFINE_UNQUOTED(HAVE_SELECT, 1,
-        [Define to 1 if you have the `select' function.])
+        [Define to 1 if you have the 'select' function.])
       HAVE_SYS_SELECT_H="1"
       AC_DEFINE_UNQUOTED(HAVE_SYS_SELECT_H, 1,
         [Define to 1 if you have the <sys/select.h> header file.])
@@ -267,13 +267,13 @@ AC_CHECK_LIB(socket, connect)
 dnl Checks for library functions.
 AC_CHECK_FUNCS([malloc memset socket])
 
-ACX_PTHREAD
-
-if test "$acx_pthread_ok" != "yes"; then
-    AC_MSG_ERROR([Missing Pthread Library])
-else
-    LIBS="$LIBS $PTHREAD_LIBS"
-fi
+AX_PTHREAD([
+        AC_DEFINE(HAVE_PTHREAD, 1,
+          [Define if you have POSIX threads libraries and header files.])
+        LIBS="$PTHREAD_LIBS $LIBS"
+        CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+        CC="$PTHREAD_CC"],
+        AC_MSG_ERROR([No pthread support on this machine]))
 
 AM_COND_IF([USE_SYSTEM_SHARED_LIB],
   [],
