@@ -233,7 +233,7 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
             // continue to wait for recv
             return;
         } else {
-            ERROR("server_recv_cb_recv");
+            if (verbose) ERROR("server_recv_cb_recv");
             close_and_free_remote(EV_A_ remote);
             close_and_free_server(EV_A_ server);
             return;
@@ -252,7 +252,7 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
             }
 
             if (!remote->direct && remote->send_ctx->connected && auth) {
-                ss_gen_hash(remote->buf, &remote->counter, server->e_ctx);
+                ss_gen_hash(remote->buf, &remote->counter, server->e_ctx, BUF_SIZE);
             }
 
             // insert shadowsocks header
@@ -260,7 +260,7 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
 #ifdef ANDROID
                 tx += remote->buf->len;
 #endif
-                int err = ss_encrypt(remote->buf, server->e_ctx);
+                int err = ss_encrypt(remote->buf, server->e_ctx, BUF_SIZE);
 
                 if (err) {
                     LOGE("invalid password or cipher");
@@ -505,7 +505,7 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
                 if (!remote->direct) {
                     if (auth) {
                         abuf->array[0] |= ONETIMEAUTH_FLAG;
-                        ss_onetimeauth(abuf, server->e_ctx->evp.iv);
+                        ss_onetimeauth(abuf, server->e_ctx->evp.iv, BUF_SIZE);
                     }
 
                     brealloc(remote->buf, buf->len + abuf->len, BUF_SIZE);
@@ -514,7 +514,7 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
 
                     if (buf->len > 0) {
                         if (auth) {
-                            ss_gen_hash(buf, &remote->counter, server->e_ctx);
+                            ss_gen_hash(buf, &remote->counter, server->e_ctx, BUF_SIZE);
                         }
                         memcpy(remote->buf->array + abuf->len, buf->array, buf->len);
                     }
@@ -667,7 +667,7 @@ static void remote_recv_cb(EV_P_ ev_io *w, int revents)
 #ifdef ANDROID
         rx += server->buf->len;
 #endif
-        int err = ss_decrypt(server->buf, server->d_ctx);
+        int err = ss_decrypt(server->buf, server->d_ctx, BUF_SIZE);
         if (err) {
             LOGE("invalid password or cipher");
             close_and_free_remote(EV_A_ remote);
@@ -992,10 +992,10 @@ int main(int argc, char **argv)
     USE_TTY();
 
 #ifdef ANDROID
-    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:a:uvVA",
+    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:a:n:uvVA",
                             long_options, &option_index)) != -1) {
 #else
-    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:a:uvA",
+    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:a:n:uvA",
                             long_options, &option_index)) != -1) {
 #endif
         switch (c) {
@@ -1044,6 +1044,11 @@ int main(int argc, char **argv)
         case 'a':
             user = optarg;
             break;
+#ifdef HAVE_SETRLIMIT
+        case 'n':
+            nofile = atoi(optarg);
+            break;
+#endif
         case 'u':
             mode = TCP_AND_UDP;
             break;
@@ -1110,7 +1115,7 @@ int main(int argc, char **argv)
          * no need to check the return value here since we will show
          * the user an error message if setrlimit(2) fails
          */
-        if (nofile) {
+        if (nofile > 1024) {
             if (verbose) {
                 LOGI("setting NOFILE to %d", nofile);
             }
