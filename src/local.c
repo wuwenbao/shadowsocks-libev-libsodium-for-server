@@ -198,10 +198,8 @@ int create_and_bind(const char *addr, const char *port)
 
 static void free_connections(struct ev_loop *loop)
 {
-    struct cork_dllist_item *curr;
-    for (curr = cork_dllist_start(&connections);
-         !cork_dllist_is_end(&connections, curr);
-         curr = curr->next) {
+    struct cork_dllist_item *curr, *next;
+    cork_dllist_foreach_void (&connections, curr, next) {
         server_t *server = cork_container_of(curr, server_t, entries);
         remote_t *remote = server->remote;
         close_and_free_server(loop, server);
@@ -1277,6 +1275,7 @@ int start_ss_local_server(profile_t profile)
     int local_port    = profile.local_port;
     int timeout       = profile.timeout;
 
+    auth      = profile.auth;
     mode      = profile.mode;
     fast_open = profile.fast_open;
     verbose   = profile.verbose;
