@@ -1,7 +1,7 @@
 /*
  * udprelay.c - Setup UDP relay for both client and server
  *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2016, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  *
@@ -445,7 +445,8 @@ int create_server_socket(const char *host, const char *port)
 
 #ifdef MODULE_REDIR
         if (setsockopt(server_sock, SOL_IP, IP_TRANSPARENT, &opt, sizeof(opt))) {
-            FATAL("[udp] setsockopt IP_TRANSPARENT");
+            ERROR("[udp] setsockopt IP_TRANSPARENT");
+            exit(EXIT_FAILURE);
         }
         if (setsockopt(server_sock, IPPROTO_IP, IP_RECVORIGDSTADDR, &opt, sizeof(opt))) {
             FATAL("[udp] setsockopt IP_RECVORIGDSTADDR");

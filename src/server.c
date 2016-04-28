@@ -1,7 +1,7 @@
 /*
  * server.c - Provide shadowsocks service
  *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2016, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  *
@@ -112,6 +112,7 @@ static int white_list = 0;
 static int acl        = 0;
 static int mode       = TCP_ONLY;
 static int auth       = 0;
+static int ipv6first  = 0;
 
 static int fast_open = 0;
 #ifdef HAVE_SETRLIMIT
@@ -1324,9 +1325,10 @@ int main(int argc, char **argv)
 
     int option_index                    = 0;
     static struct option long_options[] = {
-        { "fast-open",       no_argument,       0, 0 },
-        { "acl",             required_argument, 0, 0 },
+        { "fast-open"      , no_argument      , 0, 0 },
+        { "acl"            , required_argument, 0, 0 },
         { "manager-address", required_argument, 0, 0 },
+        { "help"           , no_argument      , 0, 0 },
         {                 0,                 0, 0, 0 }
     };
 
@@ -1334,18 +1336,21 @@ int main(int argc, char **argv)
 
     USE_TTY();
 
-    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:c:i:d:a:n:uUvAw",
-                            long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:c:i:d:a:n:huUvAw6",
+                            long_options, &option_index)) != -1) {
         switch (c) {
         case 0:
             if (option_index == 0) {
                 fast_open = 1;
             } else if (option_index == 1) {
-                LOGI("initialize acl...");
+                LOGI("initializing acl...");
                 acl      = 1;
                 acl_path = optarg;
             } else if (option_index == 2) {
                 manager_address = optarg;
+            } else if (option_index == 3) {
+                usage();
+                exit(EXIT_SUCCESS);
             }
             break;
         case 's':
@@ -1397,13 +1402,24 @@ int main(int argc, char **argv)
         case 'v':
             verbose = 1;
             break;
+        case 'h':
+            usage();
+            exit(EXIT_SUCCESS);
         case 'A':
             auth = 1;
             break;
         case 'w':
             white_list = 1;
             break;
+        case '6':
+            ipv6first = 1;
+            break;
+        case '?':
+            // The option character is not recognized.
+            opterr = 1;
+            break;
         }
+    }
 
     if (opterr) {
         usage();
@@ -1487,6 +1503,10 @@ int main(int argc, char **argv)
         daemonize(pid_path);
     }
 
+    if (ipv6first) {
+        LOGI("resolving hostname to IPv6 address first");
+    }
+
     if (fast_open == 1) {
 #ifdef TCP_FASTOPEN
         LOGI("using tcp fast open");
@@ -1497,6 +1517,14 @@ int main(int argc, char **argv)
 
     if (auth) {
         LOGI("onetime authentication enabled");
+    }
+
+    if (mode != TCP_ONLY) {
+        LOGI("UDP relay enabled");
+    }
+
+    if (mode == UDP_ONLY) {
+        LOGI("TCP relay disabled");
     }
 
 #ifdef __MINGW32__
@@ -1516,7 +1544,7 @@ int main(int argc, char **argv)
     ev_signal_start(EV_DEFAULT, &sigterm_watcher);
 
     // setup keys
-    LOGI("initialize ciphers... %s", method);
+    LOGI("initializing ciphers... %s", method);
     int m = enc_init(password, method);
 
     // inilitialize ev loop
@@ -1526,12 +1554,12 @@ int main(int argc, char **argv)
     if (nameserver_num == 0) {
 #ifdef __MINGW32__
         nameservers[nameserver_num++] = "8.8.8.8";
-        resolv_init(loop, nameservers, nameserver_num);
+        resolv_init(loop, nameservers, nameserver_num, ipv6first);
 #else
-        resolv_init(loop, NULL, 0);
+        resolv_init(loop, NULL, 0, ipv6first);
 #endif
     } else {
-        resolv_init(loop, nameservers, nameserver_num);
+        resolv_init(loop, nameservers, nameserver_num, ipv6first);
     }
 
     for (int i = 0; i < nameserver_num; i++)
@@ -1582,14 +1610,6 @@ int main(int argc, char **argv)
     if (manager_address != NULL) {
         ev_timer_init(&stat_update_watcher, stat_update_cb, UPDATE_INTERVAL, UPDATE_INTERVAL);
         ev_timer_start(EV_DEFAULT, &stat_update_watcher);
-    }
-
-    if (mode != TCP_ONLY) {
-        LOGI("UDP relay enabled");
-    }
-
-    if (mode == UDP_ONLY) {
-        LOGI("TCP relay disabled");
     }
 
     // setuid

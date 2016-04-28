@@ -1,7 +1,7 @@
 /*
  * tunnel.c - Setup a local port forwarding through remote shadowsocks server
  *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2016, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  *
@@ -28,6 +28,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <getopt.h>
 
 #ifndef __MINGW32__
 #include <errno.h>
@@ -702,16 +703,30 @@ int main(int argc, char **argv)
     ss_addr_t tunnel_addr = { .host = NULL, .port = NULL };
     char *tunnel_addr_str = NULL;
 
+    int option_index                    = 0;
+    static struct option long_options[] = {
+        { "help", no_argument, 0, 0 },
+        {      0,           0, 0, 0 }
+    };
+
     opterr = 0;
 
     USE_TTY();
 
 #ifdef ANDROID
-    while ((c = getopt(argc, argv, "f:s:p:l:k:t:m:i:c:b:L:a:n:P:uUvVA")) != -1) {
+    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:L:a:n:P:huUvVA",
+                            long_options, &option_index)) != -1) {
 #else
-    while ((c = getopt(argc, argv, "f:s:p:l:k:t:m:i:c:b:L:a:n:uUvA")) != -1) {
+    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:L:a:n:huUvA",
+                            long_options, &option_index)) != -1) {
 #endif
         switch (c) {
+        case 0:
+            if (option_index == 0) {
+                usage();
+                exit(EXIT_SUCCESS);
+            }
+            break;
         case 's':
             if (remote_num < MAX_REMOTE_NUM) {
                 remote_addr[remote_num].host   = optarg;
@@ -766,6 +781,9 @@ int main(int argc, char **argv)
         case 'v':
             verbose = 1;
             break;
+        case 'h':
+            usage();
+            exit(EXIT_SUCCESS);
         case 'A':
             auth = 1;
             break;
@@ -777,6 +795,10 @@ int main(int argc, char **argv)
             prefix = optarg;
             break;
 #endif
+        case '?':
+            // The option character is not recognized.
+            opterr = 1;
+            break;
         }
     }
 
@@ -875,7 +897,7 @@ int main(int argc, char **argv)
 #endif
 
     // Setup keys
-    LOGI("initialize ciphers... %s", method);
+    LOGI("initializing ciphers... %s", method);
     int m = enc_init(password, method);
 
     // Setup proxy context

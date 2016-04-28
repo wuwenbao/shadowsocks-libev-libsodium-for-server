@@ -1,7 +1,7 @@
 /*
  * utils.h - Misc utilities
  *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2016, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  *
@@ -150,7 +150,7 @@ extern int use_syslog;
                 fprintf(stderr, "\e[01;32m %s INFO: \e[0m" format "\n", timestr, \
                         ## __VA_ARGS__);                                         \
             } else {                                                             \
-                fprintf(stderr, "%s INFO: " format "\n", timestr,                \
+                fprintf(stderr, " %s INFO: " format "\n", timestr,               \
                         ## __VA_ARGS__);                                         \
             }                                                                    \
         }                                                                        \

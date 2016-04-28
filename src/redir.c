@@ -1,8 +1,8 @@
 /*
  * redir.c - Provide a transparent TCP proxy through remote shadowsocks
- *            server
+ *           server
  *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2016, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  *
@@ -36,10 +36,12 @@
 #include <strings.h>
 #include <time.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <limits.h>
 #include <linux/if.h>
 #include <linux/netfilter_ipv4.h>
 #include <linux/netfilter_ipv6/ip6_tables.h>
+#include <udns.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -190,6 +192,26 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
             close_and_free_server(EV_A_ server);
             return;
         }
+    }
+
+    if (verbose) {
+        uint16_t port = 0;
+        char ipstr[INET6_ADDRSTRLEN];
+        memset(&ipstr, 0, INET6_ADDRSTRLEN);
+
+        if (AF_INET == server->destaddr.ss_family) {
+            struct sockaddr_in *sa = (struct sockaddr_in *)&(server->destaddr);
+            dns_ntop(AF_INET, &(sa->sin_addr), ipstr, INET_ADDRSTRLEN);
+            port = ntohs(sa->sin_port);
+        } else {
+            // TODO: The code below need to be test in IPv6 envirment, which I
+            //       don't have.
+            struct sockaddr_in6 *sa = (struct sockaddr_in6 *)&(server->destaddr);
+            dns_ntop(AF_INET6, &(sa->sin6_addr), ipstr, INET6_ADDRSTRLEN);
+            port = ntohs(sa->sin6_port);
+        }
+
+        LOGI("redir to %s:%d, len=%zd", ipstr, port, r);
     }
 
     remote->buf->len = r;
@@ -656,10 +678,23 @@ int main(int argc, char **argv)
     ss_addr_t remote_addr[MAX_REMOTE_NUM];
     char *remote_port = NULL;
 
+    int option_index                    = 0;
+    static struct option long_options[] = {
+        { "help", no_argument, 0, 0 },
+        {      0,           0, 0, 0 }
+    };
+
     opterr = 0;
 
-    while ((c = getopt(argc, argv, "f:s:p:l:k:t:m:c:b:a:n:uUvA")) != -1)
+    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:c:b:a:n:huUvA",
+                            long_options, &option_index)) != -1) {
         switch (c) {
+        case 0:
+            if (option_index == 0) {
+                usage();
+                exit(EXIT_SUCCESS);
+            }
+            break;
         case 's':
             if (remote_num < MAX_REMOTE_NUM) {
                 remote_addr[remote_num].host   = optarg;
@@ -708,10 +743,18 @@ int main(int argc, char **argv)
         case 'v':
             verbose = 1;
             break;
+        case 'h':
+            usage();
+            exit(EXIT_SUCCESS);
         case 'A':
             auth = 1;
             break;
+        case '?':
+            // The option character is not recognized.
+            opterr = 1;
+            break;
         }
+    }
 
     if (opterr) {
         usage();
@@ -797,7 +840,7 @@ int main(int argc, char **argv)
     signal(SIGABRT, SIG_IGN);
 
     // Setup keys
-    LOGI("initialize ciphers... %s", method);
+    LOGI("initializing ciphers... %s", method);
     int m = enc_init(password, method);
 
     // Setup proxy context

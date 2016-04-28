@@ -1,7 +1,7 @@
 /*
  * local.c - Setup a socks5 proxy through remote shadowsocks server
  *
- * Copyright (C) 2013 - 2015, Max Lv <max.c.lv@gmail.com>
+ * Copyright (C) 2013 - 2016, Max Lv <max.c.lv@gmail.com>
  *
  * This file is part of the shadowsocks-libev.
  *
@@ -992,8 +992,9 @@ int main(int argc, char **argv)
 
     int option_index                    = 0;
     static struct option long_options[] = {
-        { "fast-open", no_argument,       0, 0 },
-        { "acl",       required_argument, 0, 0 },
+        { "fast-open", no_argument      , 0, 0 },
+        { "acl"      , required_argument, 0, 0 },
+        { "help"     , no_argument      , 0, 0 },
         {           0,                 0, 0, 0 }
     };
 
@@ -1002,10 +1003,10 @@ int main(int argc, char **argv)
     USE_TTY();
 
 #ifdef ANDROID
-    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:a:n:P:uvVA",
+    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:a:n:P:huvVA",
                             long_options, &option_index)) != -1) {
 #else
-    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:a:n:uvA",
+    while ((c = getopt_long(argc, argv, "f:s:p:l:k:t:m:i:c:b:a:n:huvA",
                             long_options, &option_index)) != -1) {
 #endif
         switch (c) {
@@ -1013,8 +1014,11 @@ int main(int argc, char **argv)
             if (option_index == 0) {
                 fast_open = 1;
             } else if (option_index == 1) {
-                LOGI("initialize acl...");
+                LOGI("initializing acl...");
                 acl = !init_acl(optarg, BLACK_LIST);
+            } else if (option_index == 2) {
+                usage();
+                exit(EXIT_SUCCESS);
             }
             break;
         case 's':
@@ -1065,6 +1069,9 @@ int main(int argc, char **argv)
         case 'v':
             verbose = 1;
             break;
+        case 'h':
+            usage();
+            exit(EXIT_SUCCESS);
         case 'A':
             auth = 1;
             break;
@@ -1076,6 +1083,10 @@ int main(int argc, char **argv)
             prefix = optarg;
             break;
 #endif
+        case '?':
+            // The option character is not recognized.
+            opterr = 1;
+            break;
         }
     }
 
@@ -1184,7 +1195,7 @@ int main(int argc, char **argv)
     ev_signal_start(EV_DEFAULT, &sigterm_watcher);
 
     // Setup keys
-    LOGI("initialize ciphers... %s", method);
+    LOGI("initializing ciphers... %s", method);
     int m = enc_init(password, method);
 
     // Setup proxy context
@@ -1322,7 +1333,7 @@ int start_ss_local_server(profile_t profile)
     ev_signal_start(EV_DEFAULT, &sigterm_watcher);
 
     // Setup keys
-    LOGI("initialize ciphers... %s", method);
+    LOGI("initializing ciphers... %s", method);
     int m = enc_init(password, method);
 
     struct sockaddr_storage *storage = ss_malloc(sizeof(struct sockaddr_storage));
