@@ -31,6 +31,7 @@
 #include <signal.h>
 #include <string.h>
 #include <strings.h>
+#include <time.h>
 #include <unistd.h>
 #include <getopt.h>
 
@@ -985,6 +986,7 @@ int main(int argc, char **argv)
     char *iface      = NULL;
 
     srand(time(NULL));
+    rand();
 
     int remote_num = 0;
     ss_addr_t remote_addr[MAX_REMOTE_NUM];
@@ -1286,8 +1288,6 @@ int main(int argc, char **argv)
 
 int start_ss_local_server(profile_t profile)
 {
-    srand(time(NULL));
-
     char *remote_host = profile.remote_host;
     char *local_addr  = profile.local_addr;
     char *method      = profile.method;

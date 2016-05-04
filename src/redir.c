@@ -674,6 +674,9 @@ int main(int argc, char **argv)
     char *pid_path   = NULL;
     char *conf_path  = NULL;
 
+    srand(time(NULL));
+    rand();
+
     int remote_num = 0;
     ss_addr_t remote_addr[MAX_REMOTE_NUM];
     char *remote_port = NULL;

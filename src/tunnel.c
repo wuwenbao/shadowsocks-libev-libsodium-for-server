@@ -27,6 +27,7 @@
 #include <signal.h>
 #include <string.h>
 #include <strings.h>
+#include <time.h>
 #include <unistd.h>
 #include <getopt.h>
 
@@ -695,6 +696,9 @@ int main(int argc, char **argv)
     char *pid_path   = NULL;
     char *conf_path  = NULL;
     char *iface      = NULL;
+
+    srand(time(NULL));
+    rand();
 
     int remote_num = 0;
     ss_addr_t remote_addr[MAX_REMOTE_NUM];
