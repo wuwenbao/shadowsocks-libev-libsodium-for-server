@@ -132,19 +132,6 @@ int setnonblocking(int fd)
 
 #endif
 
-#ifdef SET_INTERFACE
-int setinterface(int socket_fd, const char *interface_name)
-{
-    struct ifreq interface;
-    memset(&interface, 0, sizeof(interface));
-    strncpy(interface.ifr_name, interface_name, IFNAMSIZ);
-    int res = setsockopt(socket_fd, SOL_SOCKET, SO_BINDTODEVICE, &interface,
-                         sizeof(struct ifreq));
-    return res;
-}
-
-#endif
-
 int create_and_bind(const char *addr, const char *port)
 {
     struct addrinfo hints;
@@ -927,7 +914,8 @@ static remote_t *create_remote(listen_ctx_t *listener,
     setnonblocking(remotefd);
 #ifdef SET_INTERFACE
     if (listener->iface) {
-        setinterface(remotefd, listener->iface);
+        if (setinterface(remotefd, listener->iface) == -1)
+            ERROR("setinterface");
     }
 #endif
 

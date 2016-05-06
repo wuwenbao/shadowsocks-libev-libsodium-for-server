@@ -116,19 +116,6 @@ static int setnonblocking(int fd)
 
 #endif
 
-#ifdef SET_INTERFACE
-static int setinterface(int socket_fd, const char *interface_name)
-{
-    struct ifreq interface;
-    memset(&interface, 0, sizeof(interface));
-    strncpy(interface.ifr_name, interface_name, IFNAMSIZ);
-    int res = setsockopt(socket_fd, SOL_SOCKET, SO_BINDTODEVICE, &interface,
-                         sizeof(struct ifreq));
-    return res;
-}
-
-#endif
-
 #if defined(MODULE_REMOTE) && defined(SO_BROADCAST)
 static int set_broadcast(int socket_fd)
 {
@@ -589,7 +576,8 @@ static void query_resolve_cb(struct sockaddr *addr, void *data)
 #endif
 #ifdef SET_INTERFACE
                 if (query_ctx->server_ctx->iface) {
-                    setinterface(remotefd, query_ctx->server_ctx->iface);
+                    if (setinterface(remotefd, query_ctx->server_ctx->iface) == -1)
+                        ERROR("setinterface");
                 }
 #endif
                 remote_ctx                  = new_remote(remotefd, query_ctx->server_ctx);
@@ -1089,7 +1077,8 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
 #endif
 #ifdef SET_INTERFACE
         if (server_ctx->iface) {
-            setinterface(remotefd, server_ctx->iface);
+            if (setinterface(remotefd, server_ctx->iface) == -1)
+                ERROR("setinterface");
         }
 #endif
 
@@ -1169,7 +1158,8 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
 #endif
 #ifdef SET_INTERFACE
                 if (server_ctx->iface) {
-                    setinterface(remotefd, server_ctx->iface);
+                    if (setinterface(remotefd, server_ctx->iface) == -1)
+                        ERROR("setinterface");
                 }
 #endif
                 remote_ctx                  = new_remote(remotefd, server_ctx);

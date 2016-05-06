@@ -43,6 +43,8 @@ refer to the [Wiki page](https://github.com/shadowsocks/shadowsocks/wiki/Feature
     + [Install from repository](#install-from-repository-2)
     + [Build from source](#build-from-source)
 - [Archlinux](#archlinux)
+- [NixOS](#nixos)
+- [Nix](#nix)
 - [Directly build and install on UNIX-like system](#linux)
 - [FreeBSD](#freebsd)
 - [OpenWRT](#openwrt)
@@ -228,6 +230,18 @@ sudo pacman -S shadowsocks-libev
 
 Please refer to downstream [PKGBUILD](https://projects.archlinux.org/svntogit/community.git/tree/trunk?h=packages/shadowsocks-libev)
 script for extra modifications and distribution-specific bugs.
+
+### NixOS
+
+```bash
+nix-env -iA nixos.shadowsocks-libev
+```
+
+### Nix
+
+```bash
+nix-env -iA nixpkgs.shadowsocks-libev
+```
 
 ### Linux
 

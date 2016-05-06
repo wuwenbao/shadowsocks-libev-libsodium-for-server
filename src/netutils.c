@@ -39,6 +39,12 @@
 #include <unistd.h>
 #endif
 
+#if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_NET_IF_H) && defined(__linux__)
+#include <net/if.h>
+#include <sys/ioctl.h>
+#define SET_INTERFACE
+#endif
+
 #include "netutils.h"
 #include "utils.h"
 
@@ -62,6 +68,40 @@ size_t get_sockaddr_len(struct sockaddr *addr)
         return sizeof(struct sockaddr_in6);
     }
     return 0;
+}
+
+#ifdef SET_INTERFACE
+int setinterface(int socket_fd, const char *interface_name)
+{
+    struct ifreq interface;
+    memset(&interface, 0, sizeof(interface));
+    strncpy(interface.ifr_name, interface_name, IFNAMSIZ);
+    int res = setsockopt(socket_fd, SOL_SOCKET, SO_BINDTODEVICE, &interface,
+                         sizeof(struct ifreq));
+    return res;
+}
+#endif
+
+int bind_to_address(int socket_fd, const char *host)
+{
+    if (host != NULL) {
+        struct cork_ip ip;
+        struct sockaddr_storage storage;
+        if (cork_ip_init(&ip, host) != -1) {
+            if (ip.version == 4) {
+                struct sockaddr_in *addr = (struct sockaddr_in *)&storage;
+                dns_pton(AF_INET, host, &addr->sin_addr);
+                addr->sin_family = AF_INET;
+                return bind(socket_fd, (struct sockaddr *)addr, sizeof(struct sockaddr_in));
+            } else if (ip.version == 6) {
+                struct sockaddr_in6 *addr = (struct sockaddr_in6 *)&storage;
+                dns_pton(AF_INET6, host, &addr->sin6_addr);
+                addr->sin6_family = AF_INET6;
+                return bind(socket_fd, (struct sockaddr *)addr, sizeof(struct sockaddr_in6));
+            }
+        }
+    }
+    return -1;
 }
 
 ssize_t get_sockaddr(char *host, char *port, struct sockaddr_storage *storage, int block)
