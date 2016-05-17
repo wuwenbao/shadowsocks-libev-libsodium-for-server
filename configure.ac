@@ -55,9 +55,7 @@ AC_PROG_MAKE_SET
 AC_LANG_SOURCE
 
 dnl Checks for libev
-AM_COND_IF([USE_SYSTEM_SHARED_LIB],
-  [],
-  [m4_include([libev/libev.m4])])
+m4_include([libev/libev.m4])
 
 dnl Add library for mingw
 case $host in
@@ -287,9 +285,7 @@ AC_CONFIG_FILES([ shadowsocks-libev.pc
                  Makefile
                  libcork/Makefile
                  libipset/Makefile
+                 libudns/Makefile
+                 libev/Makefile
                  src/Makefile])
-AM_COND_IF([USE_SYSTEM_SHARED_LIB],
-  [],
-  [AC_CONFIG_FILES([libudns/Makefile
-                 libev/Makefile])])
 AC_OUTPUT
