@@ -17,7 +17,7 @@ Type=simple
 EnvironmentFile=/etc/default/shadowsocks-libev
 User=root
 #Group=$GROUP
-#LimitNOFILE=$MAXFD
+LimitNOFILE=$MAXFD
 ExecStart=/usr/bin/ss-server -a $USER -c $CONFFILE $DAEMON_ARGS
 
 [Install]
