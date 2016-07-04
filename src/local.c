@@ -81,6 +81,8 @@
 #endif
 
 int verbose = 0;
+int keep_resolving = 1;
+
 #ifdef ANDROID
 int vpn        = 0;
 uint64_t tx    = 0;
@@ -419,7 +421,7 @@ static void server_recv_cb(EV_P_ ev_io *w, int revents)
                 close_and_free_server(EV_A_ server);
                 return;
             } else {
-                char host[256], port[16];
+                char host[257], port[16];
 
                 buffer_t ss_addr_to_send;
                 buffer_t *abuf = &ss_addr_to_send;
@@ -941,6 +943,9 @@ static void signal_cb(EV_P_ ev_signal *w, int revents)
         switch (w->signum) {
         case SIGINT:
         case SIGTERM:
+#ifndef __MINGW32__
+        case SIGUSR1:
+#endif
             ev_unloop(EV_A_ EVUNLOOP_ALL);
         }
     }
@@ -965,6 +970,10 @@ void accept_cb(EV_P_ ev_io *w, int revents)
     server->listener = listener;
 
     ev_io_start(EV_A_ & server->recv_ctx->io);
+}
+
+void resolve_int_cb(int dummy) {
+    keep_resolving = 0;
 }
 
 #ifndef LIB_ONLY
@@ -1130,6 +1139,12 @@ int main(int argc, char **argv)
         if (fast_open == 0) {
             fast_open = conf->fast_open;
         }
+        if (mode == TCP_ONLY) {
+            if (conf->mode == UDP_ONLY)
+                LOGI("ignore unsupported mode: udp_only, use tcp_only as fallback");
+            else
+                mode = conf->mode;
+        }
 #ifdef HAVE_SETRLIMIT
         if (nofile == 0) {
             nofile = conf->nofile;
@@ -1184,14 +1199,9 @@ int main(int argc, char **argv)
     // ignore SIGPIPE
     signal(SIGPIPE, SIG_IGN);
     signal(SIGABRT, SIG_IGN);
+    signal(SIGINT,  resolve_int_cb);
+    signal(SIGTERM, resolve_int_cb);
 #endif
-
-    struct ev_signal sigint_watcher;
-    struct ev_signal sigterm_watcher;
-    ev_signal_init(&sigint_watcher, signal_cb, SIGINT);
-    ev_signal_init(&sigterm_watcher, signal_cb, SIGTERM);
-    ev_signal_start(EV_DEFAULT, &sigint_watcher);
-    ev_signal_start(EV_DEFAULT, &sigterm_watcher);
 
     // Setup keys
     LOGI("initializing ciphers... %s", method);
@@ -1215,6 +1225,15 @@ int main(int argc, char **argv)
     listen_ctx.timeout = atoi(timeout);
     listen_ctx.iface   = iface;
     listen_ctx.method  = m;
+
+    // Setup signal handler
+    struct ev_signal sigint_watcher;
+    struct ev_signal sigterm_watcher;
+    ev_signal_init(&sigint_watcher, signal_cb, SIGINT);
+    ev_signal_init(&sigterm_watcher, signal_cb, SIGTERM);
+    ev_signal_start(EV_DEFAULT, &sigint_watcher);
+    ev_signal_start(EV_DEFAULT, &sigterm_watcher);
+
 
     struct ev_loop *loop = EV_DEFAULT;
 
@@ -1328,6 +1347,11 @@ int start_ss_local_server(profile_t profile)
     ev_signal_init(&sigterm_watcher, signal_cb, SIGTERM);
     ev_signal_start(EV_DEFAULT, &sigint_watcher);
     ev_signal_start(EV_DEFAULT, &sigterm_watcher);
+#ifndef __MINGW32__
+    struct ev_signal sigusr1_watcher;
+    ev_signal_init(&sigusr1_watcher, signal_cb, SIGUSR1);
+    ev_signal_start(EV_DEFAULT, &sigusr1_watcher);
+#endif
 
     // Setup keys
     LOGI("initializing ciphers... %s", method);
@@ -1405,6 +1429,9 @@ int start_ss_local_server(profile_t profile)
 
     ev_signal_stop(EV_DEFAULT, &sigint_watcher);
     ev_signal_stop(EV_DEFAULT, &sigterm_watcher);
+#ifndef __MINGW32__
+    ev_signal_stop(EV_DEFAULT, &sigusr1_watcher);
+#endif
 
     // cannot reach here
     return 0;

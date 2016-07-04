@@ -91,7 +91,9 @@ static void close_and_free_server(EV_P_ server_t *server);
 int vpn = 0;
 char *prefix;
 #endif
+
 int verbose = 0;
+int keep_resolving = 1;
 
 static int mode = TCP_ONLY;
 static int auth = 0;
@@ -678,6 +680,11 @@ static void accept_cb(EV_P_ ev_io *w, int revents)
     }
 }
 
+void signal_cb(int dummy) {
+    keep_resolving = 0;
+    exit(-1);
+}
+
 int main(int argc, char **argv)
 {
     int i, c;
@@ -840,6 +847,12 @@ int main(int argc, char **argv)
         if (auth == 0) {
             auth = conf->auth;
         }
+        if (tunnel_addr_str == NULL) {
+            tunnel_addr_str = conf->tunnel_address;
+        }
+        if (mode == TCP_ONLY) {
+            mode = conf->mode;
+        }
 #ifdef HAVE_SETRLIMIT
         if (nofile == 0) {
             nofile = conf->nofile;
@@ -893,6 +906,8 @@ int main(int argc, char **argv)
     // ignore SIGPIPE
     signal(SIGPIPE, SIG_IGN);
     signal(SIGABRT, SIG_IGN);
+    signal(SIGINT,  signal_cb);
+    signal(SIGTERM, signal_cb);
 #endif
 
     // Setup keys

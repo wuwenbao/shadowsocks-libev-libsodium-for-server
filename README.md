@@ -32,6 +32,8 @@ refer to the [Wiki page](https://github.com/shadowsocks/shadowsocks/wiki/Feature
 
 - [Debian & Ubuntu](#debian--ubuntu)
     + [Install from repository](#install-from-repository)
+      - [Official repository](#official-repository)
+      - [Unofficial repository](#unofficial-repository)
     + [Build deb package from source](#build-deb-package-from-source)
     + [Configure and start the service](#configure-and-start-the-service)
 - [Fedora & RHEL](#fedora--rhel)
@@ -89,7 +91,21 @@ in the system during compilation and linking.
 
 #### Install from repository
 
-**Note: The repository doesn't always contain the latest version. Please build from source if you want the latest version (see below)**
+**Note: The repositories doesn't always contain the latest version. Please build from source if you want the latest version (see below)**
+
+##### Official repository
+
+Using official repository for Debian unstable:
+
+```bash
+sudo apt update
+sudo apt install shadowsocks-libev
+```
+
+**NOTE**: You may need to uninstall any unofficial debian packages for `shadowsocks-libev`
+to install this one from Debian official repository if you encounter any problem.
+
+##### Unofficial repository
 
 Add GPG public key:
 
@@ -141,7 +157,7 @@ section below.
 ``` bash
 cd shadowsocks-libev
 sudo apt-get install build-essential autoconf libtool libssl-dev \
-    gawk debhelper dh-systemd init-system-helpers pkg-config
+    gawk debhelper dh-systemd init-system-helpers pkg-config asciidoc xmlto
 dpkg-buildpackage -b -us -uc -i
 cd ..
 sudo dpkg -i shadowsocks-libev*.deb
@@ -164,7 +180,7 @@ sudo systemctl start shadowsocks-libev      # for systemd
 ### Fedora & RHEL
 
 Supported distributions include
-- Fedora 20, 21, rawhide
+- Fedora 22, 23, 24
 - RHEL 6, 7 and derivatives (including CentOS, Scientific Linux)
 
 #### Install from repository
@@ -243,7 +259,7 @@ For Unix-like systems, especially Debian-based systems,
 e.g. Ubuntu, Debian or Linux Mint, you can build the binary like this:
 
 ```bash
-sudo apt-get install build-essential autoconf libtool libssl-dev
+sudo apt-get install build-essential autoconf libtool libssl-dev asciidoc xmlto
 ./configure && make
 sudo make install
 ```
