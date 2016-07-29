@@ -680,6 +680,7 @@ void signal_cb(int dummy) {
 int main(int argc, char **argv)
 {
     srand(time(NULL));
+    rand();
 
     int i, c;
     int pid_flags    = 0;
