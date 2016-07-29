@@ -2,14 +2,14 @@ dnl                                               -*- Autoconf -*-
 dnl Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([shadowsocks-libev], [2.4.7], [max.c.lv@gmail.com])
+AC_INIT([shadowsocks-libev], [2.4.8], [max.c.lv@gmail.com])
 AC_CONFIG_SRCDIR([src/encrypt.c])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR(auto)
 AC_CONFIG_MACRO_DIR([m4])
 AC_USE_SYSTEM_EXTENSIONS
 
-AM_INIT_AUTOMAKE([subdir-objects foreign -Wall -Werror])
+AM_INIT_AUTOMAKE([subdir-objects foreign -Wno-gnu -Werror])
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 AM_MAINTAINER_MODE
