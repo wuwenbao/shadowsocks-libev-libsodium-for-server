@@ -23,8 +23,16 @@
 #ifndef _NETUTILS_H
 #define _NETUTILS_H
 
+#if defined(__linux__)
+#include <linux/tcp.h>
+#elif !defined(__MINGW32__)
+#include <netinet/tcp.h>
+#endif
+
 // only enable TCP_FASTOPEN on linux
 #if defined(__linux__)
+
+#include <linux/tcp.h>
 
 /*  conditional define for TCP_FASTOPEN */
 #ifndef TCP_FASTOPEN
@@ -44,10 +52,9 @@
 
 #endif
 
-
 /* Define the flag MPTCP_ENABLED if not defined*/
 #ifndef MPTCP_ENABLED
-#define MPTCP_ENABLED 26
+#define MPTCP_ENABLED 42
 #endif
 
 /** byte size of ip4 address */
