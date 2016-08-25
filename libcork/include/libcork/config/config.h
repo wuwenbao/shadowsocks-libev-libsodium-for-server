@@ -44,7 +44,7 @@
 #include <sys/param.h>
 #endif
 
-#if defined(__linux)
+#if defined(__linux) || defined(__CYGWIN__)
 /* Do some Linux-specific autodetection. */
 #include <libcork/config/linux.h>
 
@@ -55,6 +55,14 @@
 #elif defined(BSD) && (BSD >= 199103)
 /* Do some BSD (4.3 code base or newer)specific autodetection. */
 #include <libcork/config/bsd.h>
+
+#elif defined(__MINGW32__)
+/* Do some mingw32 autodetection. */
+#include <libcork/config/mingw32.h>
+
+#elif defined(__sun)
+/* Do some Solaris autodetection. */
+#include <libcork/config/solaris.h>
 
 #endif  /* platforms */
 
